@@ -1,5 +1,7 @@
 # 🤖 JEPA-Rover — world-model navigation with MPPI
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Maverick-Ansh/jepa-rover/blob/master/notebooks/jepa_rover_2d.ipynb)
+
 A rover crosses a hazardous, continuous terrain by **imagining the future in a
 learned latent space** (a PyTorch **JEPA** — Joint Embedding Predictive
 Architecture) and planning smooth controls with **MPPI** (Model Predictive Path
