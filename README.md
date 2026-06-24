@@ -1,6 +1,6 @@
 # 🤖 JEPA-Rover — world-model navigation with MPPI
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Maverick-Ansh/jepa-rover/blob/master/notebooks/jepa_rover_2d.ipynb)
+**2D:** [![Open 2D In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Maverick-Ansh/jepa-rover/blob/master/notebooks/jepa_rover_2d.ipynb) &nbsp; **3D / real-world:** [![Open 3D In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Maverick-Ansh/jepa-rover/blob/master/notebooks/jepa_rover_3d.ipynb)
 
 A rover crosses a hazardous, continuous terrain by **imagining the future in a
 learned latent space** (a PyTorch **JEPA** — Joint Embedding Predictive
@@ -51,10 +51,34 @@ driving into, several steps ahead?*
 
 ```bash
 pip install -r requirements.txt
-python rover_2d.py          # trains, simulates, writes rover_jepa.mp4
+python rover_2d.py          # 2D: trains, simulates, writes rover_jepa.mp4
+python rover_3d.py          # 3D: trains on noisy data, simulates, writes rover3d.mp4
 ```
 
-Runs on CPU in ~1 minute (the networks are ~50k params total).
+Both run on CPU in ~1–2 minutes (the networks are tiny).
+
+## The 3D / real-world version (`rover_3d.py`)
+
+Lifts the demo onto **2.5-D elevation terrain** and adds the things that make
+field robotics hard:
+
+- **Elevation map** `z = H(x,y)` (hills, a crater, a steep central massif),
+  analytic so slope is exact.
+- **Traversability cost** fuses **slope** (rollover/slip) and **roughness/rocks**.
+- **Stochastic slope-aware dynamics**: traction drops on steep ground, gravity
+  causes **downhill slip**, plus **process + heading + sensor noise**. The planner
+  uses only a *nominal* model — the model error is corrected by replanning, as on
+  real hardware.
+- **Noisy, partial observation**: a multi-channel egocentric patch (relative
+  elevation + traversal risk) + IMU-like pitch/roll.
+- **Safety fusion**: learned **JEPA risk** + a **hard analytic rollover constraint**
+  (`slope < MAX_SLOPE` from the onboard elevation map).
+- **3D animation**: risk-shaded surface with the hallucinated MPPI fan and chosen
+  plan draped on the terrain, plus a top-down risk map.
+
+**Verified results:** reaches the goal (final dist 1.87 m) under stochastic
+dynamics, slope max **0.61 < 0.85** rollover limit, **0 rollover breaches**;
+risk corr **0.998**, predictor beats no-op **14×**.
 
 ## Tunable knobs (top of `rover_2d.py`)
 
@@ -67,9 +91,10 @@ Runs on CPU in ~1 minute (the networks are ~50k params total).
 ## Roadmap
 
 - [x] 2D continuous terrain, unicycle kinematics, JEPA + MPPI
-- [ ] **3D version**: elevation terrain, slope-aware traction/slip dynamics,
-      noisy partial observations, real-world-oriented cost (slope, roughness,
-      hard obstacles), 3D visualization
+- [x] **3D version**: elevation terrain, slope-aware traction/slip dynamics,
+      noisy partial observations, real-world cost (slope + roughness), hard
+      rollover-safety constraint, 3D visualization
+- [ ] learned (vs analytic) self-model; multi-goal missions; real elevation data (DEM/GeoTIFF)
 
 ## License
 
