@@ -329,7 +329,7 @@ def mppi(env, state, U, enc, pred, evalr):
     return (wts[:, None, None] * Vc).sum(0), xs, ys, wts
 
 
-def run(env, enc, pred, evalr, max_ticks=440, capture=True, cap_every=2):
+def run(env, enc, pred, evalr, max_ticks=440, capture=True, cap_every=3):
     env.reset(START)
     U = np.zeros((H, 2), np.float32); U[:, 0] = 1.8
     frames, cap_idx, hist, reached = [], [], [], False
