@@ -417,7 +417,7 @@ def main():
     print("training the JEPA world-model ...")
     enc, pred, evalr = train_jepa(O, A, O2, R)
     print("running closed-loop MPPI in the PyBullet world ...")
-    frames, cap_idx, hist, reached = run(env)
+    frames, cap_idx, hist, reached = run(env, enc, pred, evalr)
     tl = np.array([h['tilt'] for h in hist]); sl = np.array([h['slope'] for h in hist])
     print(f"ticks={len(hist)} reached={reached} final_dist={hist[-1]['d']:.2f} m | frames={len(frames)}")
     print(f"REAL tilt mean={tl.mean():.3f} max={tl.max():.3f} | comfort>{MAX_TILT}: {(tl > MAX_TILT).sum()}"
