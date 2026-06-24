@@ -281,7 +281,8 @@ def simulate(enc, pred, evalr, max_steps=260):
 # --------------------------------------------------------------------------- #
 # 9. 3D ANIMATION
 # --------------------------------------------------------------------------- #
-def animate(hist, out="rover3d.mp4"):
+def animate(hist, out="rover3d.mp4", dpi=110, fps=12, stride=1):
+    """Render the run. Writer is chosen by extension: .gif -> Pillow, else ffmpeg."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -354,8 +355,12 @@ def animate(hist, out="rover3d.mp4"):
                      f"slope = {h['slope']:.2f}\nto goal = {d:.1f} m")
         return ()
 
-    ani = animation.FuncAnimation(fig, update, frames=len(hist), interval=85)
-    ani.save(out, writer="ffmpeg", dpi=110, fps=12)
+    ani = animation.FuncAnimation(fig, update, frames=range(0, len(hist), stride), interval=85)
+    if out.endswith(".gif"):
+        from matplotlib.animation import PillowWriter
+        ani.save(out, writer=PillowWriter(fps=fps), dpi=dpi)
+    else:
+        ani.save(out, writer="ffmpeg", dpi=dpi, fps=fps)
     plt.close(fig)
     return out
 

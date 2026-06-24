@@ -1,5 +1,15 @@
 # 🤖 JEPA-Rover — world-model navigation with MPPI
 
+<p align="center">
+  <img src="assets/demo_3d.gif" width="92%" alt="3D rover navigating hazardous elevation terrain"><br>
+  <em>3D: rover crossing elevation terrain — surface colour = slip/roughness risk, cyan = the MPPI plan
+  the JEPA world-model imagines, faint blue = the sampled "hallucinated" trajectories.</em>
+</p>
+<p align="center">
+  <img src="assets/demo_2d.gif" width="58%" alt="2D rover navigating a hazard field"><br>
+  <em>2D: the same idea on a continuous Gaussian-hazard cost map.</em>
+</p>
+
 **2D:** [![Open 2D In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Maverick-Ansh/jepa-rover/blob/master/notebooks/jepa_rover_2d.ipynb) &nbsp; **3D / real-world:** [![Open 3D In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Maverick-Ansh/jepa-rover/blob/master/notebooks/jepa_rover_3d.ipynb)
 
 A rover crosses a hazardous, continuous terrain by **imagining the future in a

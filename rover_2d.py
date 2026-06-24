@@ -252,7 +252,8 @@ def simulate(enc, pred, evalr, max_steps=140, nviz=60):
 # --------------------------------------------------------------------------- #
 # 9. ANIMATION
 # --------------------------------------------------------------------------- #
-def animate(history, out="rover_jepa.mp4"):
+def animate(history, out="rover_jepa.mp4", dpi=120, fps=11, stride=1):
+    """Render the run. Writer is chosen by extension: .gif -> Pillow, else ffmpeg."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -306,8 +307,13 @@ def animate(history, out="rover_jepa.mp4"):
         hud.set_text(f"step {i:3d}\nv = {h['v']:.2f} m/s\nrisk = {h['risk']:.2f}\nto goal = {d:4.1f} m")
         return samp, opt_line, trail, rover, hud
 
-    ani = animation.FuncAnimation(fig, update, frames=len(history), interval=90, blit=False)
-    ani.save(out, writer="ffmpeg", dpi=120, fps=11)
+    ani = animation.FuncAnimation(fig, update, frames=range(0, len(history), stride),
+                                  interval=90, blit=False)
+    if out.endswith(".gif"):
+        from matplotlib.animation import PillowWriter
+        ani.save(out, writer=PillowWriter(fps=fps), dpi=dpi)
+    else:
+        ani.save(out, writer="ffmpeg", dpi=dpi, fps=fps)
     plt.close(fig)
     return out
 
