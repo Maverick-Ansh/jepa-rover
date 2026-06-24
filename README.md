@@ -1,16 +1,23 @@
 # 🤖 JEPA-Rover — world-model navigation with MPPI
 
 <p align="center">
-  <img src="assets/demo_3d.gif" width="92%" alt="3D rover navigating hazardous elevation terrain"><br>
-  <em>3D: rover crossing elevation terrain — surface colour = slip/roughness risk, cyan = the MPPI plan
+  <img src="assets/demo_pybullet.gif" width="92%" alt="Husky navigating heightfield terrain in PyBullet"><br>
+  <em>Real physics (PyBullet): a Husky crosses heightfield terrain under full contact dynamics.
+  Left = chase-cam; right = top-down slope-risk map with the executed path (white) and the live
+  MPPI fan (cyan) the JEPA world-model hallucinates. It <strong>arcs around the steep central
+  massif</strong> instead of climbing it — 0 rollovers.</em>
+</p>
+<p align="center">
+  <img src="assets/demo_3d.gif" width="78%" alt="3D rover navigating hazardous elevation terrain"><br>
+  <em>3D (analytic): rover crossing elevation terrain — surface colour = slip/roughness risk, cyan = the MPPI plan
   the JEPA world-model imagines, faint blue = the sampled "hallucinated" trajectories.</em>
 </p>
 <p align="center">
-  <img src="assets/demo_2d.gif" width="58%" alt="2D rover navigating a hazard field"><br>
+  <img src="assets/demo_2d.gif" width="52%" alt="2D rover navigating a hazard field"><br>
   <em>2D: the same idea on a continuous Gaussian-hazard cost map.</em>
 </p>
 
-**2D:** [![Open 2D In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Maverick-Ansh/jepa-rover/blob/master/notebooks/jepa_rover_2d.ipynb) &nbsp; **3D / real-world:** [![Open 3D In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Maverick-Ansh/jepa-rover/blob/master/notebooks/jepa_rover_3d.ipynb)
+**2D:** [![Open 2D In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Maverick-Ansh/jepa-rover/blob/master/notebooks/jepa_rover_2d.ipynb) &nbsp; **3D:** [![Open 3D In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Maverick-Ansh/jepa-rover/blob/master/notebooks/jepa_rover_3d.ipynb) &nbsp; **PyBullet:** [![Open PyBullet In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Maverick-Ansh/jepa-rover/blob/master/notebooks/jepa_rover_pybullet.ipynb)
 
 A rover crosses a hazardous, continuous terrain by **imagining the future in a
 learned latent space** (a PyTorch **JEPA** — Joint Embedding Predictive
@@ -63,9 +70,11 @@ driving into, several steps ahead?*
 pip install -r requirements.txt
 python rover_2d.py          # 2D: trains, simulates, writes rover_jepa.mp4
 python rover_3d.py          # 3D: trains on noisy data, simulates, writes rover3d.mp4
+pip install pybullet
+python rover_pybullet.py    # real physics: trains, simulates, writes rover_pybullet.gif
 ```
 
-Both run on CPU in ~1–2 minutes (the networks are tiny).
+2D/3D run on CPU in ~1–2 minutes; the PyBullet run takes ~2–3 minutes (the networks are tiny).
 
 ## The 3D / real-world version (`rover_3d.py`)
 
@@ -90,6 +99,33 @@ field robotics hard:
 dynamics, slope max **0.61 < 0.85** rollover limit, **0 rollover breaches**;
 risk corr **0.998**, predictor beats no-op **14×**.
 
+## The real-physics version (`rover_pybullet.py`)
+
+Same JEPA-in-latent-space + MPPI idea, but the analytic world is replaced by a
+genuine **PyBullet** rigid-body simulation — the gap between *planning model* and
+*reality* is now real, not scripted:
+
+- **Real dynamics**: a **Husky** on a **GEOM_HEIGHTFIELD** terrain with wheel
+  contact, slip, suspension and chassis pitch/roll — no analytic kinematics.
+- **Real sensing**: the egocentric 7×7 elevation patch is built from downward
+  **ray casts** each step, plus IMU-like pitch/roll and speed.
+- **Calibrated nominal model**: skid-steer yaw authority is weak and *dies with
+  forward speed*, so the planner **probes the real actuator** and fits a unicycle
+  (`forward = KF·v`, `yaw = (KW0 − KWV·v)·w`). Replanning corrects the residual.
+- **Physics-grounded risk**: the JEPA risk head is trained on the **actual chassis
+  tilt the rover experienced**, not an analytic label — so it learns the dynamic
+  pitching over bumps that a static slope map misses.
+- **MPPI** fuses imagined latent risk + a hard onboard-DEM slope limit + a
+  stay-on-map boundary + a running goal term.
+
+**Verified results** (Colab, CPU): reaches the goal, **0 rollovers**, max chassis
+tilt ≈ **0.45 rad** with the planner holding the onboard slope under its 26° limit;
+JEPA risk correlation **≈ 0.98**, predictor beats a no-op baseline **~2×**. The
+rover **arcs around the steep central massif** rather than climbing it.
+
+> The PyBullet GIF (`assets/demo_pybullet.gif`) is rendered on Colab — `rover_2d`/`rover_3d`
+> gifs come from `scripts/make_media.py` locally; PyBullet renders headless in the notebook.
+
 ## Tunable knobs (top of `rover_2d.py`)
 
 | knob | effect |
@@ -104,6 +140,9 @@ risk corr **0.998**, predictor beats no-op **14×**.
 - [x] **3D version**: elevation terrain, slope-aware traction/slip dynamics,
       noisy partial observations, real-world cost (slope + roughness), hard
       rollover-safety constraint, 3D visualization
+- [x] **Real physics (PyBullet)**: Husky on heightfield terrain, raycast sensing,
+      calibrated skid-steer nominal model, JEPA risk grounded on experienced tilt,
+      MPPI with hard slope + boundary safety, chase-cam visualization
 - [ ] learned (vs analytic) self-model; multi-goal missions; real elevation data (DEM/GeoTIFF)
 
 ## License
